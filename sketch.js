@@ -7,8 +7,8 @@
 let finalScore = 0; 
 let maxScore = 0;
 let scoreText = ""; // 用於 p5.js 繪圖的文字
-let fireworks = []; // 【新增】儲存所有煙火物件的陣列
-let gravity; // 【新增】用於模擬重力的向量
+let fireworks = []; // 儲存所有煙火物件的陣列
+let gravity; // 用於模擬重力的向量
 
 
 window.addEventListener('message', function (event) {
@@ -26,7 +26,7 @@ window.addEventListener('message', function (event) {
         console.log("新的分數已接收:", scoreText); 
         
         // ----------------------------------------
-        // 關鍵步驟 2: 呼叫重新繪製 
+        // 呼叫重新繪製 (如果 draw() 在 loop 模式，這不是必須的，但保留以確保立即更新)
         // ----------------------------------------
         if (typeof redraw === 'function') {
             redraw(); 
@@ -40,7 +40,6 @@ window.addEventListener('message', function (event) {
 // -----------------------------------------------------------------
 
 function setup() { 
-    // ... (其他設置)
     createCanvas(windowWidth / 2, windowHeight / 2); 
     
     // 原始檔案中的 noLoop() 已經被移除，確保 draw() 函式連續執行以顯示動畫
@@ -63,12 +62,13 @@ function draw() {
     // -----------------------------------------------------------------
     // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
     // -----------------------------------------------------------------
-    if (percentage >= 90) {
-        // 滿分或高分：顯示鼓勵文本
+    // *** 關鍵修正：將觸發條件改為 100% 滿分 ***
+    if (percentage >= 100) { 
+        // 滿分：顯示鼓勵文本
         fill(120, 100, 70); // HSB 綠色
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-        // 【煙火特效觸發點】約 3% 的機率發射新煙花
+        // 【煙火特效觸發點】約 3% 的機率發射新煙花 (製造連續慶祝效果)
         if (random(1) < 0.03) { 
             fireworks.push(new Firework());
         }
@@ -99,7 +99,7 @@ function draw() {
     // B. 根據分數觸發不同的幾何圖形反映 (畫面反映二)
     // -----------------------------------------------------------------
     
-    if (percentage >= 90) {
+    if (percentage >= 90) { // 這裡可以保持 90% 觸發幾何圖形
         // 畫一個大圓圈代表完美 
         fill(120, 100, 70, 0.5); // HSB 綠色帶透明度
         noStroke();
@@ -113,7 +113,7 @@ function draw() {
     }
     
     // -----------------------------------------------------------------
-    // C. 【新增】更新並繪製煙火
+    // C. 更新並繪製煙火
     // -----------------------------------------------------------------
     for (let i = fireworks.length - 1; i >= 0; i--) {
         fireworks[i].update();
