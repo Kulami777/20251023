@@ -1,15 +1,15 @@
 // =================================================================
-// 步驟一：模擬成績數據接收
+// 步驟一：成績數據接收與全域變數
 // -----------------------------------------------------------------
 
 
-// let scoreText = "成績分數: " + finalScore + "/" + maxScore;
 // 確保這是全域變數
 let finalScore = 0; 
 let maxScore = 0;
 let scoreText = ""; // 用於 p5.js 繪圖的文字
 let fireworks = []; // 【新增】儲存所有煙火物件的陣列
 let gravity; // 【新增】用於模擬重力的向量
+
 
 window.addEventListener('message', function (event) {
     // 執行來源驗證...
@@ -26,7 +26,7 @@ window.addEventListener('message', function (event) {
         console.log("新的分數已接收:", scoreText); 
         
         // ----------------------------------------
-        // 關鍵步驟 2: 呼叫重新繪製 (見方案二)
+        // 關鍵步驟 2: 呼叫重新繪製 
         // ----------------------------------------
         if (typeof redraw === 'function') {
             redraw(); 
@@ -36,24 +36,24 @@ window.addEventListener('message', function (event) {
 
 
 // =================================================================
-// 步驟二：使用 p5.js 繪製分數 (在網頁 Canvas 上顯示)
+// 步驟二：p5.js 核心設定與繪圖
 // -----------------------------------------------------------------
 
 function setup() { 
     // ... (其他設置)
     createCanvas(windowWidth / 2, windowHeight / 2); 
-    background(255); 
-    //noLoop(); // 【註釋掉或刪除】因為煙火需要連續繪製
+    
+    // 【修正 1】已移除 noLoop(); 確保 draw() 函式連續執行
+    
     gravity = createVector(0, 0.2); // 【新增】定義重力向量
-    colorMode(HSB, 360, 100, 100, 1); // 【新增】使用 HSB 顏色模式，更適合粒子顏色變化
+    // 使用 HSB 顏色模式，讓煙火顏色變化更方便
+    colorMode(HSB, 360, 100, 100, 1); 
 } 
 
-// score_display.js 中的 draw() 函數片段
-
 function draw() { 
-    // 【修改】使用帶透明度的背景，製造粒子拖尾效果
-    background(255, 0.2); // 清除背景，並保留一點點拖尾
-
+    // 【修正 2】使用帶有低透明度 (例如 0.1) 的白色背景，製造粒子拖尾效果
+    background(255, 0.1); 
+    
     // 計算百分比
     let percentage = (finalScore / maxScore) * 100;
 
@@ -64,28 +64,28 @@ function draw() {
     // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
     // -----------------------------------------------------------------
     if (percentage >= 90) {
-        // 滿分或高分：顯示鼓勵文本，使用鮮豔顏色
-        fill(120, 100, 70); // HSB 綠色，代替 fill(0, 200, 50);
+        // 滿分或高分：顯示鼓勵文本
+        fill(120, 100, 70); // HSB 綠色
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-        // 【新增】觸發煙火特效
-        if (random(1) < 0.03) { // 約 3% 的機率發射新煙花
+        // 【新增】觸發煙火特效 (約 3% 的機率發射新煙花，製造連續效果)
+        if (random(1) < 0.03) { 
             fireworks.push(new Firework());
         }
         
     } else if (percentage >= 60) {
-        // 中等分數：顯示一般文本，使用黃色
-        fill(45, 100, 80); // HSB 黃色，代替 fill(255, 181, 35);
+        // 中等分數
+        fill(45, 100, 80); // HSB 黃色
         text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
         
     } else if (percentage > 0) {
-        // 低分：顯示警示文本，使用紅色
-        fill(0, 100, 80); // HSB 紅色，代替 fill(200, 0, 0);
+        // 低分
+        fill(0, 100, 80); // HSB 紅色
         text("需要加強努力！", width / 2, height / 2 - 50);
         
     } else {
         // 尚未收到分數或分數為 0
-        fill(0, 0, 60); // HSB 灰色，代替 fill(150);
+        fill(0, 0, 60); // HSB 灰色
         text(scoreText, width / 2, height / 2);
     }
 
@@ -129,20 +129,20 @@ function draw() {
 // 步驟三：煙火與粒子系統的類別定義 【新增】
 // -----------------------------------------------------------------
 
-// 粒子類別 - 構成煙火爆炸後的碎片
+// 粒子類別 - 構成煙火爆炸後的碎片或火箭本身
 class Particle {
     constructor(x, y, hue, firework) {
         this.pos = createVector(x, y);
-        this.firework = firework;
+        this.firework = firework; // true 表示是火箭，false 表示是爆炸碎片
         this.lifespan = 255;
-        this.hu = hue;
+        this.hu = hue; // 顏色
         this.acc = createVector(0, 0);
 
         if (this.firework) {
-            // 這是煙火發射的火箭階段
+            // 這是煙火發射的火箭階段：只有向上的初速度
             this.vel = createVector(0, random(-12, -8));
         } else {
-            // 這是爆炸後的碎片階段
+            // 這是爆炸後的碎片階段：隨機方向的初速度
             this.vel = p5.Vector.random2D();
             this.vel.mult(random(2, 10)); // 賦予隨機爆炸速度
         }
@@ -156,28 +156,31 @@ class Particle {
         if (!this.firework) {
             // 爆炸碎片受重力影響，並逐漸消失
             this.applyForce(gravity);
-            this.vel.mult(0.9); // 模擬空氣阻力
+            this.vel.mult(0.9); // 模擬空氣阻力，讓碎片速度減慢
             this.lifespan -= 4; // 減少壽命 (逐漸透明)
         }
         
         this.vel.add(this.acc);
         this.pos.add(this.vel);
-        this.acc.mult(0);
+        this.acc.mult(0); // 清除加速度
     }
 
     show() {
+        // 設定 HSB 模式下繪製
         colorMode(HSB);
+        
         if (!this.firework) {
-            // 爆炸碎片
-            strokeWeight(2);
-            stroke(this.hu, 100, 100, this.lifespan / 255); // 帶透明度的顏色
+            // 爆炸碎片：使用圓形，隨著壽命變透明
+            strokeWeight(3);
+            stroke(this.hu, 100, 100, this.lifespan / 255); 
+            point(this.pos.x, this.pos.y);
+            
         } else {
-            // 火箭
+            // 火箭：使用較粗的點
             strokeWeight(4);
             stroke(this.hu, 100, 100);
+            point(this.pos.x, this.pos.y);
         }
-
-        point(this.pos.x, this.pos.y);
     }
     
     isFinished() {
@@ -191,7 +194,8 @@ class Particle {
 class Firework {
     constructor() {
         this.hu = random(360); // 隨機顏色
-        this.firework = new Particle(random(width), height, this.hu, true); // 火箭
+        // 火箭從畫布底部隨機位置發射
+        this.firework = new Particle(random(width), height, this.hu, true); 
         this.exploded = false;
         this.particles = []; // 爆炸碎片
     }
@@ -201,7 +205,7 @@ class Firework {
             this.firework.applyForce(gravity);
             this.firework.update();
             
-            // 檢查火箭是否達到最高點 (速度為正表示開始下落)
+            // 檢查火箭是否達到最高點 (速度變正，表示開始下落)
             if (this.firework.vel.y >= 0) {
                 this.exploded = true;
                 this.explode();
@@ -218,7 +222,7 @@ class Firework {
     }
 
     explode() {
-        // 產生大量粒子
+        // 爆炸時產生 100 個碎片
         for (let i = 0; i < 100; i++) {
             let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
             this.particles.push(p);
@@ -227,9 +231,11 @@ class Firework {
 
     show() {
         if (!this.exploded) {
+            // 繪製火箭
             this.firework.show();
         }
         
+        // 繪製碎片
         for (let i = 0; i < this.particles.length; i++) {
             this.particles[i].show();
         }
