@@ -152,87 +152,51 @@ window.addEventListener('message', function (event) {
 }, false);
 
 
+// ... (保留 Particle, Firework 類別及全域變數和 postMessage 監聽器) ...
+
 // =================================================================
 // 步驟三：p5.js 核心設定與繪圖
 // -----------------------------------------------------------------
 
 function setup() { 
-    // 鎖定 Canvas 尺寸，確保可見性
-    createCanvas(600, 400); 
+    // 獲取 H5P 容器元素
+    const h5pContainer = document.getElementById('h5pContainer');
+    let canvasWidth = 600; 
+    let canvasHeight = 400;
+
+    // 關鍵調整 1: 嘗試匹配 H5P 容器的當前尺寸
+    if (h5pContainer) {
+        // 由於 H5P 內容是動態載入的，在 setup 時容器尺寸可能還不準確
+        // 我們先預設一個較大的尺寸，並將畫布附加到容器內。
+        canvasWidth = h5pContainer.offsetWidth || 800;
+        // 為了確保覆蓋整個 H5P 內容區，我們將高度設置得足夠大
+        // 如果 H5P 內容載入後會撐開容器，這裡應取其最終高度
+        canvasHeight = h5pContainer.offsetHeight || 600; 
+    }
     
+    // 關鍵調整 2: 創建 Canvas
+    const canvas = createCanvas(canvasWidth, canvasHeight); 
+    
+    // 關鍵調整 3: 將 Canvas 附加到 H5P 容器內
+    if (h5pContainer) {
+        canvas.parent('h5pContainer');
+    }
+
     gravity = createVector(0, 0.2); 
     colorMode(HSB, 360, 100, 100, 1); 
+    // 註冊窗口大小改變事件，確保 H5P 內容調整大小時 Canvas 也跟著調整
+    window.addEventListener('resize', windowResized);
 } 
 
 function draw() { 
-    // 【除錯日誌 2】 確認 draw 迴圈是否正在運行
-    console.log("Draw loop running. Final Score:", finalScore, "Max Score:", maxScore);
-    
-    // 使用帶有低透明度 (0.1) 的背景，創造粒子拖尾效果
-    background(255, 0.1); 
-    
-    let percentage = (finalScore / maxScore) * 100;
+    // ... (保留 draw 函數的其餘邏輯，包括煙火更新和繪製) ...
+}
 
-    textSize(80); 
-    textAlign(CENTER);
-    
-    // -----------------------------------------------------------------
-    // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
-    // -----------------------------------------------------------------
-    // *** 觸發條件：100% 滿分 ***
-    if (percentage >= 100 && maxScore > 0) { 
-        fill(120, 100, 70); 
-        text("恭喜！優異成績！", width / 2, height / 2 - 50);
-        
-        // 【煙火特效觸發點】約 20% 的機率發射新煙花 
-        if (random(1) < 0.2) { 
-            // 【除錯日誌 3】 確認煙火邏輯是否被觸發
-            console.log("FIREWORK TRIGGERED! Launching new firework."); 
-            fireworks.push(new Firework());
-        }
-        
-    } else if (percentage >= 60) {
-        fill(45, 100, 80); 
-        text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
-        
-    } else if (percentage > 0) {
-        fill(0, 100, 80); 
-        text("需要加強努力！", width / 2, height / 2 - 50);
-        
-    } else {
-        fill(0, 0, 60); 
-        text(scoreText, width / 2, height / 2);
-    }
-
-    // 顯示具體分數
-    textSize(50);
-    fill(0, 0, 20); 
-    text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
-    
-    
-    // -----------------------------------------------------------------
-    // B. 根據分數觸發不同的幾何圖形反映 (畫面反映二)
-    // -----------------------------------------------------------------
-    
-    if (percentage >= 90) { 
-        fill(120, 100, 70, 0.5); 
-        noStroke();
-        circle(width / 2, height / 2 + 150, 150);
-        
-    } else if (percentage >= 60) {
-        fill(45, 100, 80, 0.5); 
-        rectMode(CENTER);
-        rect(width / 2, height / 2 + 150, 150, 150);
-    }
-    
-    // -----------------------------------------------------------------
-    // C. 更新並繪製煙火
-    // -----------------------------------------------------------------
-    for (let i = fireworks.length - 1; i >= 0; i--) {
-        fireworks[i].update();
-        fireworks[i].show();
-        if (fireworks[i].done()) {
-            fireworks.splice(i, 1);
-        }
+// 關鍵調整 4: 新增窗口大小調整函數，用於響應式設計
+function windowResized() {
+    const h5pContainer = document.getElementById('h5pContainer');
+    if (h5pContainer) {
+        // 重新調整 canvas 尺寸以匹配容器
+        resizeCanvas(h5pContainer.offsetWidth, h5pContainer.offsetHeight);
     }
 }
