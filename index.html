@@ -26,11 +26,33 @@
             align-items: center; 
             min-height: 100vh; 
             font-family: Arial, sans-serif;
+            background-color: white; /* 確保 body 背景不會遮擋 */
         }
+
         #h5pContainer {
             margin-top: 20px;
+            /* 關鍵步驟 1：設置 H5P 容器為相對定位，作為 Canvas 的定位基準 */
+            position: relative; 
+            /* 讓 H5P 容器能自動適應其內容的高度 */
+            min-height: 500px; 
+            width: 90%; /* 或您希望 H5P 佔據的寬度 */
+            max-width: 1100px; /* 匹配 H5P 內容最大寬度 */
         }
-        /* p5.js Canvas 會自動創建在 body 內 */
+
+        /* 關鍵步驟 2：針對 p5.js 創建的 canvas 元素設置絕對定位 */
+        #h5pContainer canvas {
+            position: absolute; /* 絕對定位，讓其漂浮在 H5P 內容之上 */
+            top: 0;
+            left: 0;
+            z-index: 1000; /* 確保 Canvas 總是在最頂層 */
+            /* 讓點擊事件可以穿透 Canvas，觸發下方的 H5P 內容 */
+            pointer-events: none; 
+        }
+
+        /* 確保 p5.js canvas 不會有額外邊距 */
+        canvas {
+            display: block;
+        }
     </style>
 </head>
 <body>
