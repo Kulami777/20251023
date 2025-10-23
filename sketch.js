@@ -14,7 +14,6 @@ class Particle {
 
         if (this.firework) {
             // 這是煙火發射的火箭階段：只有向上的初速度
-            // 為了在 400 高度上可見，讓初速度更快一點
             this.vel = createVector(0, random(-15, -10)); 
         } else {
             // 這是爆炸後的碎片階段：隨機方向的初速度
@@ -143,6 +142,7 @@ window.addEventListener('message', function (event) {
         maxScore = data.maxScore;
         scoreText = `最終成績分數: ${finalScore}/${maxScore}`;
         
+        // 【除錯日誌 1】 確認分數是否正確收到
         console.log("新的分數已接收:", scoreText); 
         
         if (typeof redraw === 'function') {
@@ -157,7 +157,7 @@ window.addEventListener('message', function (event) {
 // -----------------------------------------------------------------
 
 function setup() { 
-    // !!! 關鍵調整 1: 鎖定 Canvas 尺寸，確保可見性 !!!
+    // 鎖定 Canvas 尺寸，確保可見性
     createCanvas(600, 400); 
     
     gravity = createVector(0, 0.2); 
@@ -165,6 +165,9 @@ function setup() {
 } 
 
 function draw() { 
+    // 【除錯日誌 2】 確認 draw 迴圈是否正在運行
+    console.log("Draw loop running. Final Score:", finalScore, "Max Score:", maxScore);
+    
     // 使用帶有低透明度 (0.1) 的背景，創造粒子拖尾效果
     background(255, 0.1); 
     
@@ -181,8 +184,10 @@ function draw() {
         fill(120, 100, 70); 
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-        // !!! 關鍵調整 2: 提高發射機率到 20% !!!
+        // 【煙火特效觸發點】約 20% 的機率發射新煙花 
         if (random(1) < 0.2) { 
+            // 【除錯日誌 3】 確認煙火邏輯是否被觸發
+            console.log("FIREWORK TRIGGERED! Launching new firework."); 
             fireworks.push(new Firework());
         }
         
