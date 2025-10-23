@@ -1,6 +1,7 @@
 // =================================================================
-// 步驟一：煙火與粒子系統的類別定義 【前置確保定義】
-// -----------------------------------------------------------------
+// 步驟一：煙火與粒子系統的類別定義 
+// (這部分已在前一步檢查並確保定義於頂部，無需修改)
+// =================================================================
 
 // 粒子類別 - 構成煙火爆炸後的碎片或火箭本身
 class Particle {
@@ -13,7 +14,8 @@ class Particle {
 
         if (this.firework) {
             // 這是煙火發射的火箭階段：只有向上的初速度
-            this.vel = createVector(0, random(-12, -8));
+            // 為了在 400 高度上可見，讓初速度更快一點
+            this.vel = createVector(0, random(-15, -10)); 
         } else {
             // 這是爆炸後的碎片階段：隨機方向的初速度
             this.vel = p5.Vector.random2D();
@@ -126,31 +128,23 @@ class Firework {
 // -----------------------------------------------------------------
 
 
-// 確保這是全域變數
 let finalScore = 0; 
 let maxScore = 0;
-let scoreText = ""; // 用於 p5.js 繪圖的文字
-let fireworks = []; // 儲存所有煙火物件的陣列
-let gravity; // 用於模擬重力的向量
+let scoreText = ""; 
+let fireworks = []; 
+let gravity; 
 
 
 window.addEventListener('message', function (event) {
-    // 執行來源驗證...
-    // ...
     const data = event.data;
     
     if (data && data.type === 'H5P_SCORE_RESULT') {
-        
-        // !!! 關鍵步驟：更新全域變數 !!!
-        finalScore = data.score; // 更新全域變數
+        finalScore = data.score; 
         maxScore = data.maxScore;
         scoreText = `最終成績分數: ${finalScore}/${maxScore}`;
         
         console.log("新的分數已接收:", scoreText); 
         
-        // ----------------------------------------
-        // 呼叫重新繪製 
-        // ----------------------------------------
         if (typeof redraw === 'function') {
             redraw(); 
         }
@@ -163,12 +157,10 @@ window.addEventListener('message', function (event) {
 // -----------------------------------------------------------------
 
 function setup() { 
-    createCanvas(windowWidth / 2, windowHeight / 2); 
+    // !!! 關鍵調整 1: 鎖定 Canvas 尺寸，確保可見性 !!!
+    createCanvas(600, 400); 
     
-    // 原始檔案中的 noLoop() 已經被移除，確保 draw() 函式連續執行以顯示動畫
-    
-    gravity = createVector(0, 0.2); // 定義重力向量
-    // 使用 HSB 顏色模式，讓煙火顏色變化更方便
+    gravity = createVector(0, 0.2); 
     colorMode(HSB, 360, 100, 100, 1); 
 } 
 
@@ -176,7 +168,6 @@ function draw() {
     // 使用帶有低透明度 (0.1) 的背景，創造粒子拖尾效果
     background(255, 0.1); 
     
-    // 計算百分比
     let percentage = (finalScore / maxScore) * 100;
 
     textSize(80); 
@@ -187,34 +178,30 @@ function draw() {
     // -----------------------------------------------------------------
     // *** 觸發條件：100% 滿分 ***
     if (percentage >= 100 && maxScore > 0) { 
-        // 滿分：顯示鼓勵文本
-        fill(120, 100, 70); // HSB 綠色
+        fill(120, 100, 70); 
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-        // 【煙火特效觸發點】約 3% 的機率發射新煙花 (製造連續慶祝效果)
-        if (random(1) < 0.03) { 
+        // !!! 關鍵調整 2: 提高發射機率到 20% !!!
+        if (random(1) < 0.2) { 
             fireworks.push(new Firework());
         }
         
     } else if (percentage >= 60) {
-        // 中等分數
-        fill(45, 100, 80); // HSB 黃色
+        fill(45, 100, 80); 
         text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
         
     } else if (percentage > 0) {
-        // 低分
-        fill(0, 100, 80); // HSB 紅色
+        fill(0, 100, 80); 
         text("需要加強努力！", width / 2, height / 2 - 50);
         
     } else {
-        // 尚未收到分數或分數為 0
-        fill(0, 0, 60); // HSB 灰色
+        fill(0, 0, 60); 
         text(scoreText, width / 2, height / 2);
     }
 
     // 顯示具體分數
     textSize(50);
-    fill(0, 0, 20); // HSB 深灰
+    fill(0, 0, 20); 
     text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
     
     
@@ -223,14 +210,12 @@ function draw() {
     // -----------------------------------------------------------------
     
     if (percentage >= 90) { 
-        // 畫一個大圓圈代表完美 
-        fill(120, 100, 70, 0.5); // HSB 綠色帶透明度
+        fill(120, 100, 70, 0.5); 
         noStroke();
         circle(width / 2, height / 2 + 150, 150);
         
     } else if (percentage >= 60) {
-        // 畫一個方形 
-        fill(45, 100, 80, 0.5); // HSB 黃色帶透明度
+        fill(45, 100, 80, 0.5); 
         rectMode(CENTER);
         rect(width / 2, height / 2 + 150, 150, 150);
     }
@@ -242,7 +227,6 @@ function draw() {
         fireworks[i].update();
         fireworks[i].show();
         if (fireworks[i].done()) {
-            // 如果煙火燃放完畢，從陣列中移除
             fireworks.splice(i, 1);
         }
     }
